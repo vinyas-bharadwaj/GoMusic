@@ -1,0 +1,60 @@
+# Homepage
+GET http://localhost:8080/
+
+###
+
+# Get a list of albums
+GET http://localhost:8080/albums/
+
+###
+
+# Add a new album
+POST http://localhost:8080/albums/
+Content-Type: application/json
+
+{
+  "title": "gnana loves shreyank",
+  "artist": "gnana",
+  "price": 42.69
+}
+
+###
+
+# Get a specific album by ID
+GET http://localhost:8080/albums/2
+
+###
+
+# endpoints related to songs
+GET http://localhost:8080/songs/
+
+### 
+
+GET http://localhost:8080/songs/1
+
+###
+
+# endpoints related to playlists
+GET http://localhost:8080/playlists/
+
+###
+POST http://localhost:8080/playlists/
+Content-Type: application/json
+
+{
+  "name": "English songs",
+  "description": "A collection of my favorite English songs."
+}
+
+###
+POST http://localhost:8080/playlists/add-song/
+Content-Type: application/json
+
+{
+  "playlist_id": 1,
+  "song_id": 2
+}
+
+###
+GET http://localhost:8080/playlists/2/songs/
+
