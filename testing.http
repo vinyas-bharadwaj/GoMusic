@@ -36,18 +36,20 @@ GET http://localhost:8080/songs/1
 
 # endpoints related to playlists
 GET http://localhost:8080/playlists/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJ1c2VybmFtZSI6InZpbnlhcyIsImV4cCI6MTc0NjI5Mjc0NSwiaWF0IjoxNzQ2MjA2MzQ1fQ.6w85i9rcuZYvsl3C7b2-pQu6_tWy0ByNnTn1JSCrk24
 
 ###
 POST http://localhost:8080/playlists/
-Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJ1c2VybmFtZSI6InZpbnlhcyIsImV4cCI6MTc0NjI5Mjc0NSwiaWF0IjoxNzQ2MjA2MzQ1fQ.6w85i9rcuZYvsl3C7b2-pQu6_tWy0ByNnTn1JSCrk24
 
 {
-  "name": "English songs",
-  "description": "A collection of my favorite English songs."
+  "name": "French songs",
+  "description": "A collection of my favorite French songs."
 }
 
 ###
 POST http://localhost:8080/playlists/add-song/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJ1c2VybmFtZSI6InZpbnlhcyIsImV4cCI6MTc0NjI5Mjc0NSwiaWF0IjoxNzQ2MjA2MzQ1fQ.6w85i9rcuZYvsl3C7b2-pQu6_tWy0ByNnTn1JSCrk24
 Content-Type: application/json
 
 {
@@ -56,5 +58,36 @@ Content-Type: application/json
 }
 
 ###
-GET http://localhost:8080/playlists/2/songs/
+GET http://localhost:8080/playlists/1/songs/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJ1c2VybmFtZSI6InZpbnlhcyIsImV4cCI6MTc0NjI5Mjc0NSwiaWF0IjoxNzQ2MjA2MzQ1fQ.6w85i9rcuZYvsl3C7b2-pQu6_tWy0ByNnTn1JSCrk24
 
+
+###
+
+# Auth routes
+### Register a new user
+POST http://localhost:8080/auth/register
+Content-Type: application/json
+
+{
+  "username": "gnana",
+  "email": "gnana@example.com",
+  "password": "password123"
+}
+
+### Login with the newly created user
+POST http://localhost:8080/auth/login
+Content-Type: application/json
+
+{
+  "username": "vinyas",
+  "password": "password123"
+}
+
+### Access protected route (copy token from login response)
+GET http://localhost:8080/songs
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJ1c2VybmFtZSI6InZpbnlhcyIsImV4cCI6MTc0NjI4NjE2NywiaWF0IjoxNzQ2MTk5NzY3fQ.mk_KRniPW8NDTuxCg-ON88gmWSOnR6ghPlPEzSafFBc
+
+### Test authentication
+GET http://localhost:8080/auth-test
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJ1c2VybmFtZSI6InZpbnlhcyIsImV4cCI6MTc0NjI5Mjc0NSwiaWF0IjoxNzQ2MjA2MzQ1fQ.6w85i9rcuZYvsl3C7b2-pQu6_tWy0ByNnTn1JSCrk24

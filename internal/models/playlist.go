@@ -20,5 +20,6 @@ type Playlist struct {
     gorm.Model
     Name        string `json:"name"`
     Description string `json:"description,omitempty"`
+	UserID      uint   `json:"user_id"`
     Songs       []Song `json:"songs" gorm:"many2many:playlist_songs;"` // Many-to-many relationship with songs
 }

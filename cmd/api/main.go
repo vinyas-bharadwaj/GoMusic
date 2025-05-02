@@ -4,12 +4,23 @@ import (
 	"log"
 
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 	"github.com/glebarez/sqlite"
+	"github.com/joho/godotenv"
+	"gorm.io/gorm"
 
 	"music-player-gin/internal/api/routes"
 	"music-player-gin/internal/models"
 )
+
+func init() {
+	// Load .env file
+	err := godotenv.Load()
+	if err != nil {
+		log.Println("Error loading .env file:", err)
+	} else {
+		log.Println("Environment variables loaded from .env file")
+	}
+}
 
 func initDB() (*gorm.DB, error) {
 	db, err := gorm.Open(sqlite.Open("albums.db"), &gorm.Config{})
@@ -18,7 +29,7 @@ func initDB() (*gorm.DB, error) {
 	}
 	
 	// Auto migrating models
-	err = db.AutoMigrate(&models.Album{}, &models.Song{}, &models.Playlist{})
+	err = db.AutoMigrate(&models.Album{}, &models.Song{}, &models.Playlist{}, &models.User{})
 	if err != nil {
 		return nil, err
 	}

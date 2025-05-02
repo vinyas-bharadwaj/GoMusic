@@ -1,6 +1,8 @@
 package routes
 
 import (
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 
@@ -16,15 +18,16 @@ func SetupRoutes(router *gin.Engine, db *gorm.DB) {
 	albumHandler := handlers.NewAlbumHandler(db)
 	songHandler := handlers.NewSongHandler(db)
 	playlistHandler := handlers.NewPlaylistHandler(db)
-	
-	// Routes
-	albumRoutes := router.Group("/albums") 
+	authHandler := handlers.NewAuthHandler(db)
+
+	// Auth routes
+	authRoutes := router.Group("/auth")
 	{
-		albumRoutes.GET("/", albumHandler.GetAllAlbums)
-		albumRoutes.GET("/:id", albumHandler.GetAlbumByID)
-		albumRoutes.POST("/", albumHandler.CreateAlbum)
+		authRoutes.POST("/register", authHandler.Register)
+		authRoutes.POST("/login", authHandler.Login)
 	}
 
+	// Song routes
 	songRoutes := router.Group("/songs")
 	{
 		songRoutes.GET("", songHandler.GetAllSongs)
@@ -32,12 +35,38 @@ func SetupRoutes(router *gin.Engine, db *gorm.DB) {
 		songRoutes.POST("", songHandler.UploadSong)
 		songRoutes.GET("/upload", songHandler.ShowUploadForm)
 	}
-
-	playlistRoutes := router.Group("/playlists")
+	
+	// Protected routes
+	protected := router.Group("/")
+	protected.Use(middleware.AuthMiddleware())
 	{
-		playlistRoutes.GET("", playlistHandler.GetAllPlaylists)
-		playlistRoutes.POST("", playlistHandler.CreatePlaylist)
-		playlistRoutes.POST("/add-song", playlistHandler.AddSongToPlaylist)
-		playlistRoutes.GET("/:playlist_id/songs", playlistHandler.GetSongsFromPlaylist)
+		// Album routes
+		albumRoutes := protected.Group("/albums") 
+		{
+			albumRoutes.GET("/", albumHandler.GetAllAlbums)
+			albumRoutes.GET("/:id", albumHandler.GetAlbumByID)
+			albumRoutes.POST("/", albumHandler.CreateAlbum)
+		}
+
+		// Playlist routes
+		playlistRoutes := protected.Group("/playlists")
+		{
+			playlistRoutes.GET("", playlistHandler.GetAllPlaylists)
+			playlistRoutes.POST("", playlistHandler.CreatePlaylist)
+			playlistRoutes.POST("/add-song", playlistHandler.AddSongToPlaylist)
+			playlistRoutes.GET("/:playlist_id/songs", playlistHandler.GetSongsFromPlaylist)
+		}
+		// Add debug routes to verify auth works
+		protected.GET("/auth-test", func(c *gin.Context) {
+			userID, exists := c.Get("user_id")
+			if !exists {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "User ID not found in context"})
+				return
+			}
+			c.JSON(http.StatusOK, gin.H{
+				"message": "Authentication successful",
+				"user_id": userID,
+			})
+		})
 	}
 }

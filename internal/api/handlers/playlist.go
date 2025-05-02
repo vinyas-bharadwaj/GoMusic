@@ -1,11 +1,14 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
+
 	"github.com/gin-gonic/gin"
 
-	"gorm.io/gorm"
 	"music-player-gin/internal/models"
+
+	"gorm.io/gorm"
 )
 
 
@@ -18,25 +21,50 @@ func NewPlaylistHandler(db *gorm.DB) *PlaylistHandler {
 }
 
 func (h *PlaylistHandler) GetAllPlaylists(c *gin.Context) {
-	var playlists []models.Playlist
-	if err := h.db.Find(&playlists).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch playlists"})
-		return
-	}
-	c.JSON(http.StatusOK, playlists)
+    // Get the user ID from the context
+    userID, exists := c.Get("user_id")
+    if !exists {
+        c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in context"})
+        return
+    }
+
+    var playlists []models.Playlist
+    if err := h.db.Where("user_id = ?", userID).Find(&playlists).Error; err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch playlists"})
+        return
+    }
+
+    c.JSON(http.StatusOK, playlists)
 }
 
 func (h *PlaylistHandler) CreatePlaylist(c *gin.Context) {
-	var playlist models.Playlist
-	if err := c.ShouldBindJSON(&playlist); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
-		return
-	}
-	if err := h.db.Create(&playlist).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create playlist"})
-		return
-	}
-	c.JSON(http.StatusCreated, playlist)
+    // Add debugging
+    fmt.Println("CreatePlaylist called")
+    
+    // Get the user ID from the context
+    userID, exists := c.Get("user_id")
+    fmt.Println("UserID from context:", userID, "Exists:", exists)
+    
+    if !exists {
+        c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in context"})
+        return
+    }
+    
+    var playlist models.Playlist
+    if err := c.ShouldBindJSON(&playlist); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request format"})
+        return
+    }
+    
+    // Set user ID
+    playlist.UserID = userID.(uint)
+    
+    if err := h.db.Create(&playlist).Error; err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create playlist"})
+        return
+    }
+
+    c.JSON(http.StatusCreated, playlist)
 }
 
 func (h *PlaylistHandler) AddSongToPlaylist(c *gin.Context) {
