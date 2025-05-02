@@ -91,3 +91,6 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJ1c
 ### Test authentication
 GET http://localhost:8080/auth-test
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJ1c2VybmFtZSI6InZpbnlhcyIsImV4cCI6MTc0NjI5Mjc0NSwiaWF0IjoxNzQ2MjA2MzQ1fQ.6w85i9rcuZYvsl3C7b2-pQu6_tWy0ByNnTn1JSCrk24
+
+### Play a song
+GET http://localhost:8080/songs/1/play

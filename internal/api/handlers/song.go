@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"music-player-gin/internal/models"
 	"net/http"
 	"os"
@@ -184,3 +185,231 @@ func (h *SongHandler) ShowUploadForm(c *gin.Context) {
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(html))
 }
 
+func (h *SongHandler) PlaySong(c *gin.Context) {
+	id := c.Param("id")
+
+	var song models.Song
+	if err := h.db.First(&song, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Song not found"})
+		return
+	}
+
+	// Check if file exists
+	if _, err := os.Stat(song.FilePath); os.IsNotExist(err) {
+		c.JSON(http.StatusNotFound, gin.H{"error": "File not found"})
+		return
+	}
+
+	// Set appropriate headers for MP3 file
+	c.Header("Content-Description", "File Transfer")
+	c.Header("Content-Transfer-Encoding", "binary")
+	c.Header("Content-Disposition", "attachment; filename="+filepath.Base(song.FilePath))
+	c.Header("Content-Type", "audio/mpeg")
+
+	// Serve the file
+	c.File(song.FilePath)
+}
+
+// Add this function to your SongHandler
+func (h *SongHandler) ShowPlayer(c *gin.Context) {
+    id := c.Param("id")
+    
+    var song models.Song
+    if err := h.db.First(&song, id).Error; err != nil {
+        c.JSON(http.StatusNotFound, gin.H{"error": "Song not found"})
+        return
+    }
+    
+    html := fmt.Sprintf(`
+    <!DOCTYPE html>
+    <html>
+        <head>
+            <title>%s - %s | GoMusic Player</title>
+            <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    max-width: 800px;
+                    margin: 0 auto;
+                    padding: 20px;
+                    background-color: #f5f5f5;
+                }
+                .player-container {
+                    background-color: #fff;
+                    border-radius: 8px;
+                    padding: 20px;
+                    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                }
+                .song-info {
+                    margin-bottom: 20px;
+                }
+                h2 {
+                    margin: 0;
+                    color: #333;
+                }
+                .artist {
+                    color: #666;
+                    margin: 5px 0;
+                }
+                .album {
+                    color: #888;
+                    font-style: italic;
+                }
+                audio {
+                    width: 100%%;
+                    margin-top: 15px;
+                }
+                .controls {
+                    display: flex;
+                    justify-content: space-between;
+                    margin-top: 10px;
+                }
+                button {
+                    background-color: #4CAF50;
+                    color: white;
+                    border: none;
+                    padding: 8px 15px;
+                    border-radius: 4px;
+                    cursor: pointer;
+                }
+                button:hover {
+                    background-color: #45a049;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="player-container">
+                <div class="song-info">
+                    <h2>%s</h2>
+                    <p class="artist">%s</p>
+                    <p class="album">Album: %s</p>
+                    <p>Genre: %s</p>
+                </div>
+                <audio controls autoplay>
+                    <source src="/songs/%s/play" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+                <div class="controls">
+                    <button onclick="window.history.back()">Back</button>
+                    <button onclick="document.querySelector('audio').play()">Play</button>
+                </div>
+            </div>
+        </body>
+    </html>
+    `, song.Title, song.Artist, song.Title, song.Artist, song.Album, song.Genre, id)
+    
+    c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(html))
+}
+
+// Add this function to your SongHandler
+func (h *SongHandler) ShowSongList(c *gin.Context) {
+    var songs []models.Song
+    if err := h.db.Find(&songs).Error; err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch songs"})
+        return
+    }
+    
+    // Start building the HTML
+    html := `
+    <!DOCTYPE html>
+    <html>
+        <head>
+            <title>GoMusic - Song Library</title>
+            <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    max-width: 800px;
+                    margin: 0 auto;
+                    padding: 20px;
+                }
+                h1 {
+                    color: #333;
+                }
+                .song-list {
+                    list-style: none;
+                    padding: 0;
+                }
+                .song-item {
+                    border-bottom: 1px solid #eee;
+                    padding: 15px 10px;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                }
+                .song-info {
+                    flex-grow: 1;
+                }
+                .song-title {
+                    font-weight: bold;
+                    margin-bottom: 5px;
+                }
+                .song-artist {
+                    color: #666;
+                    font-size: 0.9em;
+                }
+                .song-album {
+                    color: #888;
+                    font-size: 0.8em;
+                    font-style: italic;
+                }
+                .play-button {
+                    background-color: #4CAF50;
+                    color: white;
+                    border: none;
+                    padding: 8px 15px;
+                    border-radius: 4px;
+                    text-decoration: none;
+                    font-size: 0.9em;
+                }
+                .play-button:hover {
+                    background-color: #45a049;
+                }
+                .add-new {
+                    margin-top: 20px;
+                    text-align: right;
+                }
+                .add-button {
+                    background-color: #2196F3;
+                    color: white;
+                    text-decoration: none;
+                    padding: 10px 15px;
+                    border-radius: 4px;
+                    display: inline-block;
+                }
+                .add-button:hover {
+                    background-color: #0b7dda;
+                }
+            </style>
+        </head>
+        <body>
+            <h1>GoMusic Song Library</h1>
+            <ul class="song-list">
+    `
+    
+    // Add each song to the list
+    for _, song := range songs {
+        songHTML := fmt.Sprintf(`
+        <li class="song-item">
+            <div class="song-info">
+                <div class="song-title">%s</div>
+                <div class="song-artist">%s</div>
+                <div class="song-album">%s</div>
+            </div>
+            <a href="/songs/%d/player" class="play-button">Play</a>
+        </li>
+        `, song.Title, song.Artist, song.Album, song.ID)
+        
+        html += songHTML
+    }
+    
+    // Close the HTML
+    html += `
+            </ul>
+            <div class="add-new">
+                <a href="/songs/upload" class="add-button">Upload New Song</a>
+            </div>
+        </body>
+    </html>
+    `
+    
+    c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(html))
+}

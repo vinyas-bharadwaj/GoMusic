@@ -34,6 +34,9 @@ func SetupRoutes(router *gin.Engine, db *gorm.DB) {
 		songRoutes.GET("/:id", songHandler.GetSongByID)
 		songRoutes.POST("", songHandler.UploadSong)
 		songRoutes.GET("/upload", songHandler.ShowUploadForm)
+		songRoutes.GET("/:id/play", songHandler.PlaySong)
+		songRoutes.GET("/:id/player", songHandler.ShowPlayer)
+		songRoutes.GET("/list", songHandler.ShowSongList)
 	}
 	
 	// Protected routes
