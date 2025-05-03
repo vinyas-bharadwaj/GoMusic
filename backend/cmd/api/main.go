@@ -29,7 +29,7 @@ func initDB() (*gorm.DB, error) {
 	}
 	
 	// Auto migrating models
-	err = db.AutoMigrate(&models.Album{}, &models.Song{}, &models.Playlist{}, &models.User{})
+	err = db.AutoMigrate(&models.Song{}, &models.Playlist{}, &models.User{})
 	if err != nil {
 		return nil, err
 	}

@@ -1,8 +1,6 @@
 package routes
 
 import (
-	"net/http"
-
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 
@@ -15,7 +13,6 @@ func SetupRoutes(router *gin.Engine, db *gorm.DB) {
 	router.Use(middleware.LoggerMiddleware())
 
 	// Initialize handlers
-	albumHandler := handlers.NewAlbumHandler(db)
 	songHandler := handlers.NewSongHandler(db)
 	playlistHandler := handlers.NewPlaylistHandler(db)
 	authHandler := handlers.NewAuthHandler(db)
@@ -43,14 +40,6 @@ func SetupRoutes(router *gin.Engine, db *gorm.DB) {
 	protected := router.Group("/")
 	protected.Use(middleware.AuthMiddleware())
 	{
-		// Album routes
-		albumRoutes := protected.Group("/albums") 
-		{
-			albumRoutes.GET("/", albumHandler.GetAllAlbums)
-			albumRoutes.GET("/:id", albumHandler.GetAlbumByID)
-			albumRoutes.POST("/", albumHandler.CreateAlbum)
-		}
-
 		// Playlist routes
 		playlistRoutes := protected.Group("/playlists")
 		{
@@ -59,17 +48,5 @@ func SetupRoutes(router *gin.Engine, db *gorm.DB) {
 			playlistRoutes.POST("/add-song", playlistHandler.AddSongToPlaylist)
 			playlistRoutes.GET("/:playlist_id/songs", playlistHandler.GetSongsFromPlaylist)
 		}
-		// Add debug routes to verify auth works
-		protected.GET("/auth-test", func(c *gin.Context) {
-			userID, exists := c.Get("user_id")
-			if !exists {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "User ID not found in context"})
-				return
-			}
-			c.JSON(http.StatusOK, gin.H{
-				"message": "Authentication successful",
-				"user_id": userID,
-			})
-		})
 	}
 }
