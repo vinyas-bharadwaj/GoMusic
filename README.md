@@ -4,7 +4,7 @@ A modern music application with a Go backend and JavaScript frontend.
 
 ## Overview
 
-GoMusic is a web application that allows users to [brief description of what your application does - e.g., browse, stream, and manage music collections]. The application is built with a Go backend for robust server-side operations and a JavaScript frontend for a responsive user interface.
+GoMusic is a web application that allows users to upload, stream, and manage their music collections. Users can create playlists, organize their music library, and enjoy seamless audio streaming from any device. The application is built with a Go backend for robust server-side operations and a JavaScript frontend for a responsive user interface.
 
 ## System Requirements
 
@@ -17,8 +17,7 @@ GoMusic is a web application that allows users to [brief description of what you
 ### Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/gomusic.git
-cd gomusic
+git clone https://github.com/vinyas-bharadwaj/GoMusic.git
 ```
 
 ### Backend Setup
