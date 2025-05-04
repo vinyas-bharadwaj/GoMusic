@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"music-player-gin/internal/models"
 	"net/http"
 	"os"
@@ -107,84 +106,6 @@ func (h *SongHandler) UploadSong(c *gin.Context) {
 	})
 }
 
-func (h *SongHandler) ShowUploadForm(c *gin.Context) {
-	html := `
-    <!DOCTYPE html>
-    <html>
-        <head>
-            <title>Upload Song</title>
-            <style>
-                body {
-                    font-family: Arial, sans-serif;
-                    max-width: 600px;
-                    margin: 0 auto;
-                    padding: 20px;
-                }
-                h2 {
-                    color: #333;
-                }
-                div {
-                    margin-bottom: 15px;
-                }
-                label {
-                    display: block;
-                    margin-bottom: 5px;
-                }
-                input[type="text"],
-                input[type="number"] {
-                    width: 100%;
-                    padding: 8px;
-                    border: 1px solid #ddd;
-                    border-radius: 4px;
-                }
-                button {
-                    background-color: #4CAF50;
-                    color: white;
-                    padding: 10px 15px;
-                    border: none;
-                    border-radius: 4px;
-                    cursor: pointer;
-                }
-                button:hover {
-                    background-color: #45a049;
-                }
-            </style>
-        </head>
-        <body>
-            <h2>Upload MP3 Song</h2>
-            <form action="/songs" method="post" enctype="multipart/form-data">
-                <div>
-                    <label for="title">Title:</label>
-                    <input type="text" name="title" required>
-                </div>
-                <div>
-                    <label for="artist">Artist:</label>
-                    <input type="text" name="artist" required>
-                </div>
-                <div>
-                    <label for="album">Album:</label>
-                    <input type="text" name="album">
-                </div>
-                <div>
-                    <label for="genre">Genre:</label>
-                    <input type="text" name="genre">
-                </div>
-                <div>
-                    <label for="duration">Duration (seconds):</label>
-                    <input type="number" name="duration">
-                </div>
-                <div>
-                    <label for="file">MP3 File:</label>
-                    <input type="file" name="file" accept=".mp3" required>
-                </div>
-                <button type="submit">Upload</button>
-            </form>
-        </body>
-    </html>
-    `
-	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(html))
-}
-
 func (h *SongHandler) PlaySong(c *gin.Context) {
 	id := c.Param("id")
 
@@ -210,206 +131,61 @@ func (h *SongHandler) PlaySong(c *gin.Context) {
 	c.File(song.FilePath)
 }
 
-// Add this function to your SongHandler
-func (h *SongHandler) ShowPlayer(c *gin.Context) {
-    id := c.Param("id")
-    
+func (h *SongHandler) AddToFavourites(c *gin.Context) {
+    userId, exists := c.Get("user_id")
+    var isFavourited bool = false
+
+    if !exists {
+        c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in context"})
+        return
+    }
+
+    songIDStr := c.Param("id")
+    songID, err := strconv.Atoi(songIDStr)
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid song ID"})
+        return
+    }
+
+    // Check if the song exists
     var song models.Song
-    if err := h.db.First(&song, id).Error; err != nil {
+    if err := h.db.First(&song, songID).Error; err != nil {
         c.JSON(http.StatusNotFound, gin.H{"error": "Song not found"})
         return
     }
-    
-    html := fmt.Sprintf(`
-    <!DOCTYPE html>
-    <html>
-        <head>
-            <title>%s - %s | GoMusic Player</title>
-            <style>
-                body {
-                    font-family: Arial, sans-serif;
-                    max-width: 800px;
-                    margin: 0 auto;
-                    padding: 20px;
-                    background-color: #f5f5f5;
-                }
-                .player-container {
-                    background-color: #fff;
-                    border-radius: 8px;
-                    padding: 20px;
-                    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-                }
-                .song-info {
-                    margin-bottom: 20px;
-                }
-                h2 {
-                    margin: 0;
-                    color: #333;
-                }
-                .artist {
-                    color: #666;
-                    margin: 5px 0;
-                }
-                .album {
-                    color: #888;
-                    font-style: italic;
-                }
-                audio {
-                    width: 100%%;
-                    margin-top: 15px;
-                }
-                .controls {
-                    display: flex;
-                    justify-content: space-between;
-                    margin-top: 10px;
-                }
-                button {
-                    background-color: #4CAF50;
-                    color: white;
-                    border: none;
-                    padding: 8px 15px;
-                    border-radius: 4px;
-                    cursor: pointer;
-                }
-                button:hover {
-                    background-color: #45a049;
-                }
-            </style>
-        </head>
-        <body>
-            <div class="player-container">
-                <div class="song-info">
-                    <h2>%s</h2>
-                    <p class="artist">%s</p>
-                    <p class="album">Album: %s</p>
-                    <p>Genre: %s</p>
-                </div>
-                <audio controls autoplay>
-                    <source src="/songs/%s/play" type="audio/mpeg">
-                    Your browser does not support the audio element.
-                </audio>
-                <div class="controls">
-                    <button onclick="window.history.back()">Back</button>
-                    <button onclick="document.querySelector('audio').play()">Play</button>
-                </div>
-            </div>
-        </body>
-    </html>
-    `, song.Title, song.Artist, song.Title, song.Artist, song.Album, song.Genre, id)
-    
-    c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(html))
-}
 
-// Add this function to your SongHandler
-func (h *SongHandler) ShowSongList(c *gin.Context) {
-    var songs []models.Song
-    if err := h.db.Find(&songs).Error; err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch songs"})
+    // Find the user
+    var user models.User
+    if err := h.db.First(&user, userId).Error; err != nil {
+        c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
         return
     }
-    
-    // Start building the HTML
-    html := `
-    <!DOCTYPE html>
-    <html>
-        <head>
-            <title>GoMusic - Song Library</title>
-            <style>
-                body {
-                    font-family: Arial, sans-serif;
-                    max-width: 800px;
-                    margin: 0 auto;
-                    padding: 20px;
-                }
-                h1 {
-                    color: #333;
-                }
-                .song-list {
-                    list-style: none;
-                    padding: 0;
-                }
-                .song-item {
-                    border-bottom: 1px solid #eee;
-                    padding: 15px 10px;
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                }
-                .song-info {
-                    flex-grow: 1;
-                }
-                .song-title {
-                    font-weight: bold;
-                    margin-bottom: 5px;
-                }
-                .song-artist {
-                    color: #666;
-                    font-size: 0.9em;
-                }
-                .song-album {
-                    color: #888;
-                    font-size: 0.8em;
-                    font-style: italic;
-                }
-                .play-button {
-                    background-color: #4CAF50;
-                    color: white;
-                    border: none;
-                    padding: 8px 15px;
-                    border-radius: 4px;
-                    text-decoration: none;
-                    font-size: 0.9em;
-                }
-                .play-button:hover {
-                    background-color: #45a049;
-                }
-                .add-new {
-                    margin-top: 20px;
-                    text-align: right;
-                }
-                .add-button {
-                    background-color: #2196F3;
-                    color: white;
-                    text-decoration: none;
-                    padding: 10px 15px;
-                    border-radius: 4px;
-                    display: inline-block;
-                }
-                .add-button:hover {
-                    background-color: #0b7dda;
-                }
-            </style>
-        </head>
-        <body>
-            <h1>GoMusic Song Library</h1>
-            <ul class="song-list">
-    `
-    
-    // Add each song to the list
-    for _, song := range songs {
-        songHTML := fmt.Sprintf(`
-        <li class="song-item">
-            <div class="song-info">
-                <div class="song-title">%s</div>
-                <div class="song-artist">%s</div>
-                <div class="song-album">%s</div>
-            </div>
-            <a href="/songs/%d/player" class="play-button">Play</a>
-        </li>
-        `, song.Title, song.Artist, song.Album, song.ID)
-        
-        html += songHTML
+
+    // Check if the song is already in favorites
+    var count int64
+    h.db.Table("user_favourite_songs").
+        Where("user_id = ? AND song_id = ?", user.ID, song.ID).
+        Count(&count)
+
+    if count > 0 {
+        // Song is already in favorites, remove it
+        if err := h.db.Exec("DELETE FROM user_favourite_songs WHERE user_id = ? AND song_id = ?", user.ID, song.ID).Error; err != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to remove song from favorites"})
+            return
+        }
+    } else {
+        // Song is not in favorites, add it
+        if err := h.db.Exec("INSERT INTO user_favourite_songs (user_id, song_id) VALUES (?, ?)", user.ID, song.ID).Error; err != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to add song to favorites"})
+            return
+        }
+        isFavourited = true
     }
-    
-    // Close the HTML
-    html += `
-            </ul>
-            <div class="add-new">
-                <a href="/songs/upload" class="add-button">Upload New Song</a>
-            </div>
-        </body>
-    </html>
-    `
-    
-    c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(html))
+
+    c.JSON(http.StatusOK, gin.H{
+        "message": "Song added to favorites",
+        "song":    songID,
+        "isFavourited": isFavourited,
+    })
 }
+

@@ -24,17 +24,6 @@ func SetupRoutes(router *gin.Engine, db *gorm.DB) {
 		authRoutes.POST("/login", authHandler.Login)
 	}
 
-	// Song routes
-	songRoutes := router.Group("/songs")
-	{
-		songRoutes.GET("", songHandler.GetAllSongs)
-		songRoutes.GET("/:id", songHandler.GetSongByID)
-		songRoutes.POST("", songHandler.UploadSong)
-		songRoutes.GET("/upload", songHandler.ShowUploadForm)
-		songRoutes.GET("/:id/play", songHandler.PlaySong)
-		songRoutes.GET("/:id/player", songHandler.ShowPlayer)
-		songRoutes.GET("/list", songHandler.ShowSongList)
-	}
 	
 	// Protected routes
 	protected := router.Group("/")
@@ -47,6 +36,15 @@ func SetupRoutes(router *gin.Engine, db *gorm.DB) {
 			playlistRoutes.POST("", playlistHandler.CreatePlaylist)
 			playlistRoutes.POST("/add-song", playlistHandler.AddSongToPlaylist)
 			playlistRoutes.GET("/:playlist_id/songs", playlistHandler.GetSongsFromPlaylist)
+		}
+
+		// Song routes
+		songRoutes := protected.Group("/songs")
+		{
+			songRoutes.GET("", songHandler.GetAllSongs)
+			songRoutes.GET("/:id", songHandler.GetSongByID)
+			songRoutes.POST("", songHandler.UploadSong)
+			songRoutes.GET("/:id/play", songHandler.PlaySong)
 		}
 	}
 }

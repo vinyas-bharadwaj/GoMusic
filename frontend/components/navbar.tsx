@@ -1,40 +1,28 @@
 'use client';
-import { useState, useEffect } from 'react';
+
+import { useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation'; 
-import { FaSearch, FaHome, FaMusic, FaHeart, FaUserAlt, FaBars } from 'react-icons/fa';
+import { FaSearch, FaHome, FaMusic, FaHeart, FaUserAlt, FaBars, FaSignInAlt, FaUserPlus, FaSignOutAlt, FaUpload } from 'react-icons/fa';
 import { RiPlayListFill } from 'react-icons/ri';
 import { IoMdClose } from 'react-icons/io';
+import { useAuth } from '@/context/AuthContext';
+import NavLink from './NavLink';
 
 const Navbar = () => {
-  const pathname = usePathname(); 
   const [isOpen, setIsOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
-
-  // Handle scrolling effect
-  useEffect(() => {
-    const handleScroll = () => {
-      if (window.scrollY > 10) {
-        setScrolled(true);
-      } else {
-        setScrolled(false);
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  const { user, logoutUser } = useAuth();
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
   };
 
+  const handleLogout = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    await logoutUser();
+  };
+
   return (
-    <nav className={`fixed p-1 top-0 w-full z-50 transition-all duration-300 ${
-      scrolled 
-        ? 'bg-black shadow-lg border-b border-pink-500' 
-        : 'bg-black'
-    }`}>
+    <nav className="fixed p-1 top-0 w-full z-50 bg-black shadow-lg border-b border-pink-500">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo and Brand */}
@@ -62,11 +50,31 @@ const Navbar = () => {
           {/* Navigation Links - Desktop */}
           <div className="hidden md:block">
             <div className="ml-10 flex items-center space-x-6">
+              {/* Common Links for All Users */}
               <NavLink href="/" icon={<FaHome />} text="Home" />
-              <NavLink href="/explore" icon={<FaMusic />} text="Explore" />
-              <NavLink href="/library" icon={<RiPlayListFill />} text="Library" />
-              <NavLink href="/favorites" icon={<FaHeart />} text="Favorites" />
-              <NavLink href="/profile" icon={<FaUserAlt />} text="Profile"/>
+              <NavLink href="/song/explore" icon={<FaMusic />} text="Explore" />
+              
+              {/* Authenticated User Links */}
+              {user ? (
+                <>
+                  <NavLink href="/library" icon={<RiPlayListFill />} text="Library" />
+                  <NavLink href="/song/upload" icon={<FaUpload />} text="Upload" />
+                  <NavLink href="/profile" icon={<FaUserAlt />} text="Profile" />
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center px-3 py-1.5 rounded-full text-sm font-medium transition-all duration-200 text-gray-300 hover:bg-gray-800 hover:text-pink-400"
+                  >
+                    <span className="mr-1.5 text-pink-400"><FaSignOutAlt /></span>
+                    Logout
+                  </button>
+                </>
+              ) : (
+                <>
+                  {/* Guest Links */}
+                  <NavLink href="/login" icon={<FaSignInAlt />} text="Login" />
+                  <NavLink href="/signup" icon={<FaUserPlus />} text="Sign Up" />
+                </>
+              )}
             </div>
           </div>
 
@@ -91,21 +99,7 @@ const Navbar = () => {
   );
 };
 
-interface NavLinkProps {
-  href: string;
-  icon: React.ReactNode;
-  text: string;
-}
 
-// Desktop Navigation Link Component
-const NavLink = ({ href, icon, text }: NavLinkProps) => (
-  <Link 
-    href={href}
-    className='flex items-center px-3 py-1.5 rounded-full text-sm font-medium transition-all duration-200 text-gray-300 hover:bg-gray-800 hover:text-pink-400'
-  >
-    <span className="mr-1.5 text-pink-400">{icon}</span>
-    {text}
-  </Link>
-);
+
 
 export default Navbar;
